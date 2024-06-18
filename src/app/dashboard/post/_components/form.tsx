@@ -21,33 +21,46 @@ import PostStatus from "@/app/components/PostStatus"; // Import PostStatus
 import {
   CreateProductBody,
   CreateProductBodyType,
+  ProductResType,
 } from "@/schemaValidations/post.schema";
 import PostCategory from "@/app/components/PostCategory";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import productApiRequest from "@/apiRequests/products";
 import { toast } from "@/components/ui/use-toast";
-
-const AddNewPost = () => {
+type Product = ProductResType["data"];
+const ProductForm = ({ product }: { product?: Product }) => {
   const [loading, setLoading] = useState(false);
-  const [uploadedImageURL, setUploadedImageURL] = useState<string>("");
+  const [uploadedImageURL, setUploadedImageURL] = useState<string>(
+    product?.image || ""
+  );
 
   const form = useForm<CreateProductBodyType>({
     resolver: zodResolver(CreateProductBody),
     defaultValues: {
-      title: "",
-      image: "",
-      description: "",
-      status_code: "",
-      category_code: "",
+      title: product?.title || "",
+      image: product?.image || "",
+      description: product?.description || "",
+      status_code: product?.statusData?.value || "",
+      category_code: product?.categoryData?.value || "",
       // creationDate: "",
     },
   });
 
+  useEffect(() => {
+    form.reset({
+      title: product?.title || "",
+      image: product?.image || "",
+      description: product?.description || "",
+      status_code: product?.statusData?.code || "",
+      category_code: product?.categoryData?.code || "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product]);
   async function onSubmit(values: CreateProductBodyType) {
     console.log(values);
     setLoading(true);
     try {
-      const result = await productApiRequest.create({ ...values });
+      await productApiRequest.create({ ...values });
       toast({
         variant: "default",
         description: "Add New Post Successfully",
@@ -138,7 +151,22 @@ const AddNewPost = () => {
           /> */}
         </div>
         <ImageUpload name="image" initialImageURL={uploadedImageURL} />
-
+        {/* <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image</FormLabel>
+              <FormControl>
+                <ImageUpload
+                  name={field.name}
+                  initialImageURL={uploadedImageURL}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        /> */}
         <FormField
           control={form.control}
           name="description"
@@ -159,10 +187,12 @@ const AddNewPost = () => {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit">
+          {product ? "Update Product" : "Add Product"}
+        </Button>
       </form>
     </Form>
   );
 };
 
-export default AddNewPost;
+export default ProductForm;

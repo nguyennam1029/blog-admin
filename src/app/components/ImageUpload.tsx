@@ -1,10 +1,15 @@
-// src/components/ImageUpload.tsx
 "use client";
 
 import { useFormContext, Controller } from "react-hook-form";
 import { storage } from "@/lib/firebaseConfig";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import { Input } from "@/components/ui/input";
+
 import {
   FormItem,
   FormLabel,
@@ -13,7 +18,25 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import Image from "next/image";
-
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/use-toast";
+const extractFileNameFromURL = (url: string) => {
+  const decodedURL = decodeURIComponent(url);
+  const startIdx = decodedURL.indexOf("/o/") + 3;
+  const endIdx = decodedURL.indexOf("?alt=");
+  return decodedURL.substring(startIdx, endIdx);
+};
 const ImageUpload = ({
   name,
   initialImageURL,
@@ -24,28 +47,26 @@ const ImageUpload = ({
   const { control, setValue } = useFormContext();
   const [uploadedImageURL, setUploadedImageURL] =
     useState<string>(initialImageURL);
-  // const [uploadProgress, setUploadProgress] = useState<number>(0);
-
-  // Create the file metadata
+  const [fileNameImage, setFileNameImage] = useState<string>(() => {
+    if (initialImageURL) {
+      return extractFileNameFromURL(initialImageURL);
+    }
+    return "";
+  });
 
   const handleFileChange = async (file: File) => {
-    /** @type {any} */
+    setFileNameImage(file?.name);
     const metadata = {
       contentType: "image/jpeg",
     };
-    // Upload file and metadata to the object 'images/mountains.jpg'
     const storageRef = ref(storage, "images/" + file.name);
-    console.log("🚀 ~ handleFileChange ~ storageRef:", storageRef);
     const uploadTask = uploadBytesResumable(storageRef, file, metadata);
 
-    // Listen for state changes, errors, and completion of the upload.
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
         const progress =
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        // setUploadProgress(progress);
         switch (snapshot.state) {
           case "paused":
             console.log("Upload is paused");
@@ -56,25 +77,16 @@ const ImageUpload = ({
         }
       },
       (error) => {
-        // A full list of error codes is available at
-        // https://firebase.google.com/docs/storage/web/handle-errors
         switch (error.code) {
           case "storage/unauthorized":
-            // User doesn't have permission to access the object
             break;
           case "storage/canceled":
-            // User canceled the upload
             break;
-
-          // ...
-
           case "storage/unknown":
-            // Unknown error occurred, inspect error.serverResponse
             break;
         }
       },
       () => {
-        // Upload completed successfully, now we can get the download URL
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setUploadedImageURL(downloadURL);
           setValue(name, downloadURL);
@@ -82,6 +94,27 @@ const ImageUpload = ({
       }
     );
   };
+
+  const handleDeleteImage = () => {
+    const desertRef = ref(storage, fileNameImage);
+    deleteObject(desertRef)
+      .then(() => {
+        setUploadedImageURL("");
+        setValue(name, "");
+        setFileNameImage(""); // Reset the file name
+        toast({
+          description: "Delete image successfully",
+        });
+      })
+      .catch((error) => {
+        // Handle error
+        console.error("Error deleting image: ", error);
+        toast({
+          description: "Failed to delete image",
+        });
+      });
+  };
+
   return (
     <Controller
       control={control}
@@ -92,17 +125,41 @@ const ImageUpload = ({
           <FormControl>
             <div className="flex items-center justify-center w-full">
               <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-                <div className="flex flex-col items-center justify-center p-2 w-full h-full overflow-hidden">
+                <div className="relative flex flex-col items-center justify-center p-2 w-full h-full overflow-hidden">
                   {uploadedImageURL ? (
                     <>
                       <Image
                         src={uploadedImageURL}
-                        alt="anh"
+                        alt="Image"
                         height={240}
                         width={1112}
                         quality={100}
                         className="w-full h-full object-cover rounded-sm"
                       />
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <div className="absolute top-2/4 left-2/4 p-3 rounded-full bg-red-600 text-white z-50">
+                            <Trash2 />
+                          </div>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Do you want to delete this product?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              The product will be permanently deleted!
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteImage}>
+                              Continue
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </>
                   ) : (
                     <>
@@ -131,19 +188,20 @@ const ImageUpload = ({
                     </>
                   )}
                 </div>
-                <Input
-                  id="dropzone-file"
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]) {
-                      handleFileChange(e.target.files[0]);
-                    }
-                  }}
-                />
+                {!uploadedImageURL && (
+                  <Input
+                    id="dropzone-file"
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleFileChange(e.target.files[0]);
+                      }
+                    }}
+                  />
+                )}
               </label>
             </div>
-            {/* <div>{uploadProgress > 0 && uploadProgress}</div> */}
           </FormControl>
           <FormMessage>{fieldState.error?.message}</FormMessage>
         </FormItem>

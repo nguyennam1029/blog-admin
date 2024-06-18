@@ -2,16 +2,11 @@
 
 import * as React from "react";
 import {
-  ArrowUpCircle,
   CheckCircle,
-  CheckCircle2,
-  Circle,
-  Clock,
   FileText,
-  HelpCircle,
   LucideIcon,
-  XCircle,
   XCircleIcon,
+  Hourglass,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -45,9 +40,9 @@ type Status = {
 
 const statuses: Status[] = [
   {
-    value: "pending ",
-    label: "Pending ",
-    icon: Clock,
+    value: "PND6",
+    label: "Pedding",
+    icon: Hourglass,
   },
   {
     value: "APP7",

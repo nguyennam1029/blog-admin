@@ -73,7 +73,7 @@ const request = async <Response>(
     ? `Bearer ${clientSessionToken.value}`
     : ''
   }
-  console.log("🚀 ~ baseHeaders:", baseHeaders)
+
   // Nếu không truyền baseUrl (hoặc baseUrl = undefined) thì lấy từ envConfig.NEXT_PUBLIC_API_ENDPOINT
   // Nếu truyền baseUrl thì lấy giá trị truyền vào, truyền vào '' thì đồng nghĩa với việc chúng ta gọi API đến Next.js Server
 
@@ -147,7 +147,7 @@ const http = {
   },
   delete<Response>(
     url: string,
-    body: any,
+    body?: any,
     options?: Omit<CustomOptions, 'body'> | undefined
   ) {
     return request<Response>('DELETE', url, { ...options, body })

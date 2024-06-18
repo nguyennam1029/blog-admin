@@ -50,6 +50,7 @@ export const ProductSchema = z.object({
 export const ProductRes = z.object({
   err: z.number(),
   mes: z.string(),
+  data: ProductSchema,
 });
 
 export type ProductResType = z.TypeOf<typeof ProductRes>;
@@ -69,3 +70,12 @@ export const ProductParams = z.object({
   id: z.coerce.number(),
 });
 export type ProductParamsType = z.TypeOf<typeof ProductParams>;
+
+export const MessageRes = z
+  .object({
+    err: z.number(),
+    message: z.string(),
+  })
+  .strict();
+
+export type MessageResType = z.TypeOf<typeof MessageRes>;

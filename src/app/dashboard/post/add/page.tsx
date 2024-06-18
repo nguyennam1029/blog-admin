@@ -1,5 +1,5 @@
 import Tiptap from "@/app/components/Tiptap";
-import AddNewPost from "./add-form";
+import AddNewPost from "../_components/form";
 
 export default function page() {
   return (
