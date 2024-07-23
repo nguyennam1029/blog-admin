@@ -2,9 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, handleErrorApi } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -22,6 +22,7 @@ import {
   CreateProductBody,
   CreateProductBodyType,
   ProductResType,
+  UpdateProductBodyType,
 } from "@/schemaValidations/post.schema";
 import PostCategory from "@/app/components/PostCategory";
 import { useEffect, useState } from "react";
@@ -40,6 +41,7 @@ const ProductForm = ({ product }: { product?: Product }) => {
       title: product?.title || "",
       image: product?.image || "",
       description: product?.description || "",
+      short_description: product?.short_description || "",
       status_code: product?.statusData?.value || "",
       category_code: product?.categoryData?.value || "",
       // creationDate: "",
@@ -51,13 +53,16 @@ const ProductForm = ({ product }: { product?: Product }) => {
       title: product?.title || "",
       image: product?.image || "",
       description: product?.description || "",
+      short_description: product?.short_description || "",
       status_code: product?.statusData?.code || "",
       category_code: product?.categoryData?.code || "",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product]);
-  async function onSubmit(values: CreateProductBodyType) {
-    console.log(values);
+
+  // =================== Create ===============
+
+  const createProduct = async (values: CreateProductBodyType) => {
     setLoading(true);
     try {
       await productApiRequest.create({ ...values });
@@ -65,15 +70,63 @@ const ProductForm = ({ product }: { product?: Product }) => {
         variant: "default",
         description: "Add New Post Successfully",
       });
-      // form.reset();
-      // setUploadedImageURL("");
     } catch (error) {
+      toast({
+        variant: "destructive",
+        description: "Fales",
+      });
       console.log("🚀 ~ onSubmit ~ error:", error);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
+  //  ============== Update =============
+  const updateProduct = async (_values: UpdateProductBodyType) => {
+    if (!product) return;
+    setLoading(true);
+    let values = _values;
+    try {
+      const result = await productApiRequest.update(product.id, values);
+
+      toast({
+        description: result.payload.mes,
+      });
+    } catch (error: any) {
+      handleErrorApi({
+        error,
+        setError: form.setError,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  // async function onSubmit(values: CreateProductBodyType) {
+  //   setLoading(true);
+  //   try {
+  //     await productApiRequest.create({ ...values });
+  //     toast({
+  //       variant: "default",
+  //       description: "Add New Post Successfully",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       variant: "destructive",
+  //       description: "Fales",
+  //     });
+  //     console.log("🚀 ~ onSubmit ~ error:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
+  async function onSubmit(values: CreateProductBodyType) {
+    if (loading) return;
+    if (product) {
+      await updateProduct(values);
+    } else {
+      await createProduct(values);
+    }
+  }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -91,10 +144,23 @@ const ProductForm = ({ product }: { product?: Product }) => {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
-            name="category_code"
-            render={({ field }) => <PostCategory {...field} />}
+            name="short_description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Short Description</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter a short description here.."
+                    {...field}
+                    type="text"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -103,52 +169,11 @@ const ProductForm = ({ product }: { product?: Product }) => {
             name="status_code"
             render={({ field }) => <PostStatus {...field} />}
           />
-          {/* <FormField
+          <FormField
             control={form.control}
-            name="creationDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="leading-6">Creation Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        size="default"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(new Date(field.value), "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          field.onChange(date.toISOString());
-                        }
-                      }}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
+            name="category_code"
+            render={({ field }) => <PostCategory {...field} />}
+          />
         </div>
         <ImageUpload name="image" initialImageURL={uploadedImageURL} />
         {/* <FormField
@@ -187,7 +212,8 @@ const ProductForm = ({ product }: { product?: Product }) => {
             </FormItem>
           )}
         />
-        <Button type="submit">
+        <Button type="submit" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {product ? "Update Product" : "Add Product"}
         </Button>
       </form>

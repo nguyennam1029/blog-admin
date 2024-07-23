@@ -26,8 +26,9 @@ export const FilterBar = () => {
   const authorOptions = [
     { value: "all", label: "All" },
 
-    { value: "john_doe", label: "John Doe" },
-    { value: "jane_smith", label: "Jane Smith" },
+    { value: "6", label: "Admin" },
+    { value: "4", label: "Jane Smith" },
+    { value: "1", label: "John Dev" },
   ];
 
   const statusOptions = [

@@ -47,13 +47,16 @@ export default async function page({
   const limit = process.env.NEXT_PUBLIC_LIMIT_PRODUCT || 5;
   const currentPage = searchParams?.page ?? 1;
   const category = searchParams?.category || "";
+  console.log("🚀 ~ category:", category);
   const author = searchParams?.author || "";
   const status = searchParams?.status || "";
+  console.log("🚀 ~ status:", status);
   const { payload } = await productApiRequest.getList(
     limit,
     currentPage,
     title,
     category,
+    author,
     status
   );
 
@@ -97,7 +100,7 @@ export default async function page({
           <Button size="sm" className="h-8 gap-1">
             <PlusCircle className="h-3.5 w-3.5" />
             <Link
-              href="/dashboard/post/addNewPost"
+              href="/dashboard/post/add"
               className="sr-only sm:not-sr-only sm:whitespace-nowrap"
             >
               Add Product

@@ -19,6 +19,7 @@ export const CreateProductBody = z.object({
   title: z.string().min(1, "Title is required"),
   image: z.string().url().optional(),
   description: z.string().min(1, "Content is required"),
+  short_description: z.string().min(1, "Content is required"),
   status_code: z.string().min(1, "Status is required"),
   category_code: z.string().min(1, "Category is required"),
   //  creationDate: z.string().min(1, "Creation Date is required"),
@@ -29,6 +30,7 @@ export type CreateProductBodyType = z.TypeOf<typeof CreateProductBody>;
 export const ProductSchema = z.object({
   id: z.number(),
   title: z.string(),
+  short_description: z.string(),
   description: z.string(),
   status: z.string(),
   image: z.string(),

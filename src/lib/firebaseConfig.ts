@@ -4,12 +4,12 @@ import { getStorage, uploadBytesResumable, getDownloadURL } from "firebase/stora
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB7vpXCunpiy8HB-xgWzTl9N_SeelpKODw",
-  authDomain: "db-firebase-4faba.firebaseapp.com",
-  projectId: "db-firebase-4faba",
-  storageBucket: "db-firebase-4faba.appspot.com",
-  messagingSenderId: "89013722391",
-  appId: "1:89013722391:web:491210a3afc04845eceb52"
+   apiKey: "AIzaSyDDg7j76xzFsS-PRl3FDhPLtDqwbVBFKp4",
+  authDomain: "blog-16f4e.firebaseapp.com",
+  projectId: "blog-16f4e",
+  storageBucket: "blog-16f4e.appspot.com",
+  messagingSenderId: "147924567528",
+  appId: "1:147924567528:web:492ecb3a0d492ab661905d"
 };
 
 // Initialize Firebase

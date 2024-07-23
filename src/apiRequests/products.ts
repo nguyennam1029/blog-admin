@@ -3,6 +3,7 @@ import {
   MessageResType,
   ProductListResType,
   ProductResType,
+  UpdateProductBodyType,
 } from "@/schemaValidations/post.schema";
 import http from "@/lib/http";
 // import { MessageResType } from '@/schemaValidations/common.schema'
@@ -49,7 +50,7 @@ const productApiRequest = {
       page: currentPage || 1,
       title: title || "",
       category: category || "",
-      author: author || "",
+      author_code: author || "",
       status: status || "",
     };
 
@@ -66,13 +67,10 @@ const productApiRequest = {
         cache: 'no-store'
       }),
   create: (body: CreateProductBodyType) => http.post<ProductResType>("/post", body),
-  //   update: (id: number, body: UpdateProductBodyType) =>
-  //     http.put<ProductResType>(`/products/${id}`, body),
-  //   uploadImage: (body: FormData) =>
-  //     http.post<{
-  //       message: string
-  //       data: string
-  //     }>('/media/upload', body),
+    update: (id: number, body: UpdateProductBodyType) => http.put<ProductResType>(`/post?id=${id}`, body , {
+        cache: 'no-store'
+      }),
+   
     delete: (id: number) => http.delete<MessageResType>(`/post?id=${id}`)
 };
 

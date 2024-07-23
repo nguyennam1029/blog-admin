@@ -32,6 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ButtonLogout from "./ButtonLogout";
 
 export default function Header() {
   return (
@@ -134,7 +135,8 @@ export default function Header() {
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          {/* <DropdownMenuItem>Logout</DropdownMenuItem> */}
+          <ButtonLogout></ButtonLogout>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
